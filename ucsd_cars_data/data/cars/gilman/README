@@ -1,0 +1,16 @@
+The files in this directory comprise the 'Gilman' dataset.  There are
+two subdirectories:
+
+    cropped/     - Contains 1,142 cropped images of the backs of cars,
+                   organized into 18 sets.  These images were obtained
+                   by running the license plate detector on the Gilman
+                   video and cropping the middle frame in a tracked
+                   sequence.
+
+    frames/      - Contains 1,290 raw frames from the Gilman video at
+                   times when the license plate detector fired.
+
+Also included in this directory is an index file -- labels.info -- of
+hand coded make and model information for each of the 1,142 images in
+the cropped/ subdirectory.
+                               

@@ -1,0 +1,9 @@
+The files in this directory comprise the 'Regents' dataset.  The
+cropped/ subdirectory contains 114 cropped images of the backs of
+cars captured by running the license plate detector on the Regents
+video streams and cropping the middle frame in a tracked sequence.
+
+Also included in this directory is an index file -- labels.info -- of
+hand-coded make and model information and license plate locations
+for each of the 114 images in the cropped/ subdirectory.
+

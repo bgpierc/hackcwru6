@@ -12,18 +12,21 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import localization
 from skimage.transform import resize
+from skimage.filters import threshold_otsu
+
  
-def getPlate(CONFIDENCE = 0.5,PADDINGX = 100,PADDINGY = 50,newW = 512, newH =288):
-	filepath  = '/home/bp0017/Documents/hackathon/jesse_data/benchmarks-master/endtoend/us/wts-lg-000051.jpg'
+def getPlate(CONFIDENCE = 0.25,PADDINGX = 0,PADDINGY = 0,newW = 512, newH =288):
+	filepath  = '/home/bp0017/Desktop/tstimg/Toyota_Sienna_XLE_from_Nigeria_(15148474245).jpg'
 	image = cv2.imread(filepath)#np.asarray(Image.open(filepath).convert("L")) #I like pillow's image opening method better
 	orig = image.copy()
 	(H, W) = image.shape[:2]
-	cv2.imshow("Text Detection", image)
-	cv2.waitKey(0)
+	# cv2.imshow("Text Detection", image)
+	# cv2.waitKey(0)
 
 	#16:9 aspect ratio. must be multiples of 32. Manual
 	rW = W / float(newW)
 	rH = H / float(newH)
+	#print(rW,rH)
 	image = cv2.resize(image, (newW, newH))
 	(H, W) = image.shape[:2]
 
@@ -100,32 +103,37 @@ def getPlate(CONFIDENCE = 0.5,PADDINGX = 100,PADDINGY = 50,newW = 512, newH =288
 		endX = int(endX * rW)
 		endY = int(endY * rH)
 
-		#cv2.rectangle(orig, (startX, startY), (endX, endY), (0, 255, 0), 2)
+		cv2.rectangle(orig, (startX, startY), (endX, endY), (0, 255, 0), 2)
 		#print((startX, startY), (endX, endY))
 		cpy = orig.copy()
 		cropped = cpy[startY-PADDINGX:endY+PADDINGX,startX-PADDINGY:endX+PADDINGY]
 		x,y,depth = cropped.shape
 		if (x and y and depth): #if it's not in the image, don't show it
-			#cv2.imshow("cropped", cropped)
-			#cv2.waitKey(0)
+			cv2.imshow("cropped", cropped)
+			cv2.waitKey(0)
 			cropped_plates.append(cropped) #might be multiple plates in
 
 
 
-	# for img in cropped_plates:
-	# 	cv2.imshow("Text Detection", img)
-	# 	cv2.waitKey(0)
+	for img in cropped_plates:
+		cv2.imshow("Text Detection", img)
+		cv2.waitKey(0)
 
 		return cropped_plates
+
+
+
+
 
 #@param plate_img the localized image of the plate (hopefully)
 def get_chars(plate_img):
 	gray_image = cv2.cvtColor(plate_img, cv2.COLOR_BGR2GRAY) *255
-	#thresh = threshold_otsu(gray_image)
-	ret,binary = cv2.threshold(gray_image,127,255,cv2.THRESH_BINARY)
+	thresh = threshold_otsu(gray_image)
+	ret,binary = cv2.threshold(gray_image,thresh,255,cv2.THRESH_BINARY)
 	label_image = measure.label(binary)
 	fig, (ax1) = plt.subplots(1)
 	ax1.imshow(gray_image, cmap="gray");
+	#plt.show()
 	#cv2.imshow("binary",thresh)
 	#cv2.waitKey(0)
 	rectanges = []
@@ -138,23 +146,30 @@ def get_chars(plate_img):
 	    rectBorder = patches.Rectangle((minCol, minRow), maxCol-minCol, maxRow-minRow, edgecolor="red", linewidth=2, fill=False)
 	    ax1.add_patch(rectBorder)
 	    rectanges.append(rect)
+	#plt.show()
 	medianArea = np.median([x[4] for x in rectanges])
 	selected_chars = []
 	for r in rectanges:
 		minRow, minCol, maxRow, maxCol,area = r
+		cpy = binary.copy()
 		if area < 3*medianArea:#welcome to hackathon, where numbers are made up and statistics don't matter
 			selected_chars.append(r)
+			
+
 
 	selected_chars_sorted = sorted(selected_chars, key = lambda x: x[1]) 
+	ret = []
 	for s in selected_chars_sorted:
 		minRow, minCol, maxRow, maxCol,area = s
 		cpy = binary.copy()
 		sliced = cpy[minRow:maxRow,minCol:maxCol]
-		resized_image = cv2.resize(sliced, (15, 25),interpolation=cv2.INTER_NEAREST) 
+		resized_image = cv2.resize(sliced, (20, 20),interpolation=cv2.INTER_NEAREST) 
+		ret.append(resized_image)
 		cv2.imshow("char",resized_image)
 		cv2.waitKey(0)
 
-	#plt.show()
+	return ret
+	
 
-
-get_chars(getPlate()[0])
+#get_chars(getPlate()[0])
+#getPlate2()
